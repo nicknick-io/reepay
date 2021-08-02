@@ -3,6 +3,10 @@ namespace NickNickIO\Reepay\Models;
 
 class Model
 {
+    /**
+     * @var array
+     */
+    private $rules = [];
 
     /**
      * Model constructor.
@@ -56,7 +60,6 @@ class Model
         }
 
         $this->{$property} = (new $model($data))::collection($data);
-
     }
 
 }

@@ -1,9 +1,7 @@
 <?php
 namespace NickNickIO\Reepay;
 
-use NickNickIO\Reepay\Resources\{
-    PlanResource
-};
+use NickNickIO\Reepay\Resources\{AccountResource, PlanResource};
 
 class Reepay
 {
@@ -12,6 +10,11 @@ class Reepay
      * @var PlanResource
      */
     public PlanResource $plan;
+
+    /**
+     * @var AccountResource
+     */
+    public AccountResource $account;
 
 
     /**
@@ -23,6 +26,7 @@ class Reepay
         $connection = new Connection($token);
 
         $this->plan = new PlanResource($connection);
+        $this->account = new AccountResource($connection);
     }
 
 }

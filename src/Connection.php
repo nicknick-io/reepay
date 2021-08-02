@@ -23,9 +23,6 @@ class Connection
             'auth' => [
                 $token, ''
             ]
-            /*'headers' => [
-                'Authorization' => 'Basic ' . base64_encode($token)
-            ]*/
         ]);
     }
 
@@ -39,6 +36,20 @@ class Connection
     {
         return $this->parse(
             $this->connection->get(
+                $this->resolve(implode('/', [$this->uri, $url]), $parameters)
+            )
+        );
+    }
+
+    /**
+     * @param string $url
+     * @param array $parameters
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function post(string $url, array $parameters = [])
+    {
+        return $this->parse(
+            $this->connection->post(
                 $this->resolve(implode('/', [$this->uri, $url]), $parameters)
             )
         );
