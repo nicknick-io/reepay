@@ -1,0 +1,21 @@
+{
+    "name": "nicknick-io/reepay",
+    "description": "",
+    "type": "library",
+    "require": {
+        "guzzlehttp/guzzle": "^7.2",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "NickNickIO\\Reepay\\": "src"
+        }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nickolaj Madsen",
+            "email": "nvm@intory.dk"
+        }
+    ]
+}
