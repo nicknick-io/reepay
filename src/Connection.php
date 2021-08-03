@@ -4,8 +4,13 @@ namespace NickNickIO\Reepay;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
-use NickNickIO\Reepay\Exceptions\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
+use NickNickIO\Reepay\Exceptions\{
+    ForbiddenException,
+    MethodNotAllowedException,
+    MissingException,
+    NotFoundException
+};
 
 class Connection
 {
@@ -123,8 +128,14 @@ class Connection
     private function errors($exception, $response)
     {
         switch ($exception->getCode()) {
+            case 403:
+                throw new ForbiddenException($response->error, $response->http_status);
             case 404:
                 throw new NotFoundException($response->error, $response->http_status);
+            case 405:
+                throw new MethodNotAllowedException($response->error, $response->http_status);
+            default:
+                throw new MissingException('The error code fell through, we are missing an error code.', $response->http_status);
         }
     }
 }
