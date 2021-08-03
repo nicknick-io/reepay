@@ -26,7 +26,7 @@ class PlanResource extends Resource
      */
     public function get(string $handle)
     {
-        return new Plan($this->connection->get('plan/' . $handle));
+        return new Plan($this->connection->get('plan/' . $handle . '/current'));
     }
 
     /**

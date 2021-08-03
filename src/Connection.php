@@ -3,6 +3,8 @@
 namespace NickNickIO\Reepay;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use NickNickIO\Reepay\Exceptions\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
 
 class Connection
@@ -30,21 +32,24 @@ class Connection
      * @param string $url
      * @param array $parameters
      * @return array
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function get(string $url, array $parameters = []) : array
     {
-        return $this->parse(
-            $this->connection->get(
-                $this->resolve(implode('/', [$this->uri, $url]), $parameters)
-            )
-        );
+        try {
+            return $this->parse(
+                $this->connection->get($this->resolve(implode('/', [$this->uri, $url]), $parameters))
+            );
+        } catch (GuzzleException $exception) {
+            $response = json_decode((string)$exception->getResponse()->getBody());
+            $this->errors($exception, $response);
+        }
     }
 
     /**
      * @param string $url
      * @param array $parameters
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function post(string $url, array $parameters = [])
     {
@@ -108,5 +113,18 @@ class Connection
         }
 
         return $url . '?' . $collector;
+    }
+
+    /**
+     * @param $exception
+     * @param $response
+     * @throws NotFoundException
+     */
+    private function errors($exception, $response)
+    {
+        switch ($exception->getCode()) {
+            case 404:
+                throw new NotFoundException($response->error, $response->http_status);
+        }
     }
 }
