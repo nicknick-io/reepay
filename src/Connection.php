@@ -5,12 +5,11 @@ namespace NickNickIO\Reepay;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
-use NickNickIO\Reepay\Exceptions\{
-    ForbiddenException,
+use NickNickIO\Reepay\Exceptions\{ForbiddenException,
     MethodNotAllowedException,
     MissingException,
-    NotFoundException
-};
+    NotFoundException,
+    ReepayException};
 
 class Connection
 {
@@ -27,9 +26,7 @@ class Connection
         $this->uri = $uri;
         $this->connection = new Client([
             'debug' => false,
-            'auth' => [
-                $token, ''
-            ]
+            'auth' => [$token, '']
         ]);
     }
 
@@ -37,34 +34,40 @@ class Connection
      * @param string $url
      * @param array $parameters
      * @return array
-     * @throws GuzzleException
+     * @throws ReepayException
      */
     public function get(string $url, array $parameters = []) : array
     {
-        try {
-            return $this->parse(
-                $this->connection->get($this->resolve(implode('/', [$this->uri, $url]), $parameters))
-            );
-        } catch (GuzzleException $exception) {
-            $response = json_decode((string)$exception->getResponse()->getBody());
-            $this->errors($exception, $response);
-        }
+        return $this->call('GET', $url, $parameters);
     }
 
     /**
      * @param string $url
      * @param array $parameters
-     * @throws GuzzleException
+     * @return array
+     * @throws ReepayException
+     */
+    public function delete(string $url, array $parameters = []) : array
+    {
+        return $this->call('DELETE', $url, $parameters);
+    }
+
+    /**
+     * @param string $url
+     * @param array $parameters
+     * @return array
+     * @throws ReepayException
      */
     public function post(string $url, array $parameters = [])
     {
-        return $this->parse(
-            $this->connection->post(
-                $this->resolve(implode('/', [$this->uri, $url]), $parameters)
-            )
-        );
+        return $this->call('POST', $url, $parameters);
     }
 
+    /**
+     * @param string $url
+     * @param array $parameters
+     * @return string
+     */
     public function uri(string $url, array $parameters = [])
     {
         return $this->resolve(implode('/', [$this->uri, $url]), $parameters);
@@ -90,12 +93,31 @@ class Connection
     }
 
     /**
+     * @param string $method
+     * @param string $url
+     * @param array $parameters
+     * @return array
+     * @throws ReepayException
+     */
+    private function call(string $method, string $url, array $parameters = [])
+    {
+        try {
+            return $this->parse(
+                $this->connection->request($method, $this->resolve(implode('/', [$this->uri, $url]), $parameters))
+            );
+        } catch (GuzzleException $exception) {
+            $response = json_decode((string)$exception->getResponse()->getBody());
+            $this->errors($exception, $response);
+        }
+    }
+
+    /**
      * Resolve the keys defined in a url.
      * @param string $url
      * @param array $parameters
      * @return string|string[]
      */
-    public function resolve(string $url, array $parameters) : string
+    private function resolve(string $url, array $parameters) : string
     {
         $collector = '';
         foreach ($parameters as $parameter => $options) {

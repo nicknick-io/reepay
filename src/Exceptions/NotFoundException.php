@@ -3,7 +3,7 @@ namespace NickNickIO\Reepay\Exceptions;
 
 use Throwable;
 
-class NotFoundException extends \Exception
+class NotFoundException extends ReepayException
 {
     public function __construct($message = "", $code = 0, Throwable $previous = null)
     {
