@@ -5,11 +5,15 @@ namespace NickNickIO\Reepay;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
-use NickNickIO\Reepay\Exceptions\{ForbiddenException,
+use NickNickIO\Reepay\Exceptions\{BadRequestException,
+    ForbiddenException,
+    InternalServerErrorException,
     MethodNotAllowedException,
     MissingException,
     NotFoundException,
-    ReepayException};
+    ReepayException,
+    UnauthorizedException,
+    UnprocessableEntityException};
 
 class Connection
 {
@@ -148,15 +152,23 @@ class Connection
      */
     private function errors($exception, $response)
     {
-        switch ($exception->getCode()) {
-            case 403:
-                throw new ForbiddenException($response->error, $response->http_status);
-            case 404:
-                throw new NotFoundException($response->error, $response->http_status);
-            case 405:
-                throw new MethodNotAllowedException($response->error, $response->http_status);
-            default:
-                throw new MissingException('The error code fell through, we are missing an error code.', $response->http_status);
+        $errors = [
+            400 => new BadRequestException($response->error, $response->http_status),
+            401 => new UnauthorizedException($response->error, $response->http_status),
+            403 => new ForbiddenException($response->error, $response->http_status),
+            404 => new NotFoundException($response->error, $response->http_status),
+            405 => new MethodNotAllowedException($response->error, $response->http_status),
+            422 => new UnprocessableEntityException($response->error, $response->http_status),
+            500 => new InternalServerErrorException($response->error, $response->http_status),
+            501 => new InternalServerErrorException($response->error, $response->http_status),
+            502 => new InternalServerErrorException($response->error, $response->http_status),
+            503 => new InternalServerErrorException($response->error, $response->http_status),
+        ];
+
+        if (in_array($exception->getCode(), array_keys($errors))) {
+            throw $errors[$exception->getCode()];
         }
+
+        throw new MissingException('We have found an error that is not yet in our collection - Error code: ' . $response->http_status, $response->http_status);
     }
 }
