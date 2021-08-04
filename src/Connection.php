@@ -106,8 +106,7 @@ class Connection
                 $this->connection->request($method, $this->resolve(implode('/', [$this->uri, $url]), $parameters))
             );
         } catch (GuzzleException $exception) {
-            $response = json_decode((string)$exception->getResponse()->getBody());
-            $this->errors($exception, $response);
+            $this->errors($exception, json_decode((string)$exception->getResponse()->getBody()));
         }
     }
 
@@ -145,7 +144,7 @@ class Connection
     /**
      * @param $exception
      * @param $response
-     * @throws NotFoundException
+     * @throws ReepayException
      */
     private function errors($exception, $response)
     {
