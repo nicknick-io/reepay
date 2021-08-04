@@ -1,7 +1,11 @@
 <?php
 namespace NickNickIO\Reepay;
 
-use NickNickIO\Reepay\Resources\{AccountResource, DunningPlanResource, OrganisationResource, PlanResource};
+use NickNickIO\Reepay\Resources\{AccountResource,
+    CustomerResource,
+    DunningPlanResource,
+    OrganisationResource,
+    PlanResource};
 
 class Reepay
 {
@@ -26,6 +30,11 @@ class Reepay
      */
     public DunningPlanResource $dunning_plan;
 
+    /**
+     * @var CustomerResource
+     */
+    public CustomerResource $customer;
+
 
     /**
      * Reepay constructor.
@@ -37,6 +46,7 @@ class Reepay
 
         $this->plan = new PlanResource($connection);
         $this->account = new AccountResource($connection);
+        $this->customer = new CustomerResource($connection);
         $this->organisation = new OrganisationResource($connection);
         $this->dunning_plan = new DunningPlanResource($connection);
     }

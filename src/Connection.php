@@ -2,18 +2,19 @@
 
 namespace NickNickIO\Reepay;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use Psr\Http\Message\ResponseInterface;
-use NickNickIO\Reepay\Exceptions\{BadRequestException,
+use GuzzleHttp\{Client, Exception\GuzzleException};
+use NickNickIO\Reepay\Exceptions\{
+    BadRequestException,
     ForbiddenException,
     InternalServerErrorException,
     MethodNotAllowedException,
     MissingException,
     NotFoundException,
     ReepayException,
+    RequestLimitingExceededException,
     UnauthorizedException,
-    UnprocessableEntityException};
+    UnprocessableEntityException
+};
 
 class Connection
 {
@@ -42,7 +43,7 @@ class Connection
      */
     public function get(string $url, array $parameters = []) : array
     {
-        return $this->call('GET', $url, $parameters);
+        return $this->request('GET', $url, $parameters);
     }
 
     /**
@@ -53,7 +54,7 @@ class Connection
      */
     public function delete(string $url, array $parameters = []) : array
     {
-        return $this->call('DELETE', $url, $parameters);
+        return $this->request('DELETE', $url, $parameters);
     }
 
     /**
@@ -62,9 +63,20 @@ class Connection
      * @return array
      * @throws ReepayException
      */
-    public function post(string $url, array $parameters = [])
+    public function post(string $url, array $parameters = []) : array
     {
-        return $this->call('POST', $url, $parameters);
+        return $this->request('POST', $url, $parameters);
+    }
+
+    /**
+     * @param string $url
+     * @param array $parameters
+     * @return array
+     * @throws ReepayException
+     */
+    public function put(string $url, array $parameters = []) : array
+    {
+        return $this->request('PUT', $url, $parameters);
     }
 
     /**
@@ -78,20 +90,10 @@ class Connection
     }
 
     /**
-     * @param string $url
-     * @param array $data
+     * @param $response
      * @return array
      */
-    public function put(string $url, array $data = []) : array
-    {
-        return [];
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @return array
-     */
-    private function parse(ResponseInterface $response) : array
+    private function parse($response) : array
     {
         return (array)json_decode($response->getBody()->getContents());
     }
@@ -103,7 +105,7 @@ class Connection
      * @return array
      * @throws ReepayException
      */
-    private function call(string $method, string $url, array $parameters = [])
+    private function request(string $method, string $url, array $parameters = [])
     {
         try {
             return $this->parse(
@@ -120,14 +122,14 @@ class Connection
      * @param array $parameters
      * @return string|string[]
      */
-    private function resolve(string $url, array $parameters) : string
+    public function resolve(string $url, array $parameters) //: string
     {
         $collector = '';
         foreach ($parameters as $parameter => $options) {
             $current_parameter = '';
 
             // Takes a string and builds it onto the collector.
-            if (is_string($options) || is_bool($options)) {
+            if (is_string($options) || is_bool($options) || is_int($options)) {
                 $current_parameter = implode('=', [$parameter, $options]);
             }
 
@@ -159,10 +161,12 @@ class Connection
             404 => new NotFoundException($response->error, $response->http_status),
             405 => new MethodNotAllowedException($response->error, $response->http_status),
             422 => new UnprocessableEntityException($response->error, $response->http_status),
+            429 => new RequestLimitingExceededException($response->error, $response->http_status),
             500 => new InternalServerErrorException($response->error, $response->http_status),
             501 => new InternalServerErrorException($response->error, $response->http_status),
             502 => new InternalServerErrorException($response->error, $response->http_status),
             503 => new InternalServerErrorException($response->error, $response->http_status),
+            504 => new InternalServerErrorException($response->error, $response->http_status),
         ];
 
         if (in_array($exception->getCode(), array_keys($errors))) {
