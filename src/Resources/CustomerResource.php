@@ -14,6 +14,11 @@ class CustomerResource extends Resource
     public CustomerNoteResource $note;
 
     /**
+     * @var CustomerPaymentMethodResource
+     */
+    public CustomerPaymentMethodResource $payment_method;
+
+    /**
      * CustomerResource constructor.
      * @param Connection $connection
      */
@@ -21,6 +26,7 @@ class CustomerResource extends Resource
     {
         parent::__construct($connection);
         $this->note = new CustomerNoteResource($connection);
+        $this->payment_method = new CustomerPaymentMethodResource($connection);
     }
 
     /**
