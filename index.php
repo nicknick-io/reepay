@@ -3,7 +3,7 @@
 require 'vendor/autoload.php';
 
 use NickNickIO\Reepay\Reepay;
-$reepay = new Reepay('priv_205af8d8805bc6037a000749154baff7');
+$reepay = new Reepay('pr875894628754bhjvhjdsbhj');
 
 echo '<pre>';
 var_dump($reepay->customer->payment_method->all('cust-0001'));
